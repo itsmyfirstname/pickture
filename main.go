@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -32,6 +33,20 @@ func navigateToSource(sourcePath string) string {
 	return dir
 }
 
+func walk(sourcePath string) {
+	err := filepath.Walk(sourcePath, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			fmt.Printf("Error accessing path %q: %v\n", path, err)
+			return err
+		}
+		fmt.Printf("Visited: %s (IsDir: %t)\n", path, info.IsDir())
+		return nil
+	})
+	if err != nil {
+		fmt.Printf("Error walking the path: %v\n", err)
+	}
+}
+
 func fileSearch(sourcePath string) {
 	dir := navigateToSource(sourcePath)
 	files, error := os.ReadDir(dir)
@@ -53,6 +68,7 @@ func fileSearch(sourcePath string) {
 				continue
 			}
 			fmt.Println(dirName)
+			fileSearch(dirName)
 
 		}
 	}
@@ -71,6 +87,6 @@ func main() {
 		fmt.Fprintln(os.Stderr, "Target Directory |", *targetDirectory)
 		os.Exit(1)
 	}
-	fileSearch(*sourceDirectory)
+	walk(*sourceDirectory)
 
 }
