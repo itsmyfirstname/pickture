@@ -8,12 +8,6 @@ import (
 	"strings"
 )
 
-type FileTypes struct {
-	jpg  string
-	jpeg string
-	png  string
-}
-
 func navigateToSource(sourcePath string) string {
 	error := os.Chdir(sourcePath)
 
@@ -34,12 +28,26 @@ func navigateToSource(sourcePath string) string {
 }
 
 func walk(sourcePath string) {
+	FileTypes := [9]string{"jpg", "jpeg", "png", "hvec", "raw", "dcs", "mp4", "avi", "mkv"}
 	err := filepath.Walk(sourcePath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			fmt.Printf("Error accessing path %q: %v\n", path, err)
 			return err
 		}
-		fmt.Printf("Visited: %s (IsDir: %t)\n", path, info.IsDir())
+		//fmt.Printf("Visited: %s (IsDir: %t)\n", path, info.IsDir())
+
+		if info.IsDir() {
+			if strings.HasPrefix(info.Name(), ".") {
+				return nil
+			}
+			return nil
+		}
+
+		for _, file := range FileTypes {
+			if strings.HasSuffix(info.Name(), file) {
+				fmt.Fprintln(os.Stdout, "Found filename", info.Name())
+			}
+		}
 		return nil
 	})
 	if err != nil {
