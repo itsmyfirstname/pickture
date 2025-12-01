@@ -3,6 +3,7 @@ package util
 import (
 	"fmt"
 	"os"
+	"strings"
 )
 
 func NavigateToSource(sourcePath string) string {
@@ -22,4 +23,32 @@ func NavigateToSource(sourcePath string) string {
 	}
 
 	return dir
+}
+
+func FileSearch(sourcePath string) {
+	dir := NavigateToSource(sourcePath)
+	files, error := os.ReadDir(dir)
+
+	if error != nil {
+		fmt.Println("Unable to read directory")
+		os.Exit(1)
+	}
+
+	for _, file := range files {
+		if file.IsDir() {
+			dirInfo, error := file.Info()
+			if error != nil {
+				fmt.Println("Unexpected error getting dir info")
+			}
+			dirName := dirInfo.Name()
+
+			if strings.HasPrefix(dirName, ".") {
+				continue
+			}
+			fmt.Println(dirName)
+			FileSearch(dirName)
+
+		}
+	}
+
 }
