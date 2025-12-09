@@ -3,10 +3,56 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
 )
+
+func move(fileObjectSource string, fileObjectDestination string) (string, error) {
+	err := os.Rename(fileObjectSource, fileObjectDestination)
+
+	if err != nil {
+		fmt.Errorf("Failed to move | %w", err)
+		return "", err
+	}
+	return "success", nil
+}
+
+func copy(fileObjectSource string, fileObjectDestination string) (string, error) {
+	// create temp dir
+	// add source file to temp object
+	file, err := os.Open(fileObjectSource)
+
+	if err != nil {
+		return "", fmt.Errorf("Failed to open file | %w", err)
+	}
+	defer file.Close()
+
+	newFile, err := os.Create(fileObjectDestination)
+	if err != nil {
+		return "", fmt.Errorf("Failed to create dest file | %w", err)
+	}
+	defer newFile.Close()
+
+	_, err = io.Copy(file, newFile)
+	if err != nil {
+		return "", fmt.Errorf("Failed to copy file | %w", err)
+	}
+
+	stat, err := file.Stat()
+
+	if err != nil {
+		return "", fmt.Errorf("Failed to read src file permissions | %w", err)
+	}
+
+	err = os.Chmod(fileObjectDestination, stat.Mode())
+
+	if err != nil {
+		return "", fmt.Errorf("Failed to apply src permissions to destination | %w", err)
+	}
+	return "Successfully copied", nil
+}
 
 func walk(sourcePath string) {
 	FileTypes := [9]string{"jpg", "jpeg", "png", "hvec", "raw", "dcs", "mp4", "avi", "mkv"}
